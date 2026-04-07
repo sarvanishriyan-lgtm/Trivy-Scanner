@@ -1,0 +1,7 @@
+include README.md
+include requirements.txt
+recursive-include trivy_scanner/app/static *
+recursive-include trivy_scanner/app/templates *
+recursive-include trivy_scanner/docs *
+global-exclude *.pyc
+global-exclude __pycache__
