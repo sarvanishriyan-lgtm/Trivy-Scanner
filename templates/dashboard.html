@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trivy Vulnerability Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>🔒 Trivy Vulnerability Dashboard</h1>
+            <div class="header-actions">
+                <button class="btn btn-primary" onclick="exportReport()">📥 Export Report</button>
+            </div>
+        </header>
+
+        <!-- Summary Cards -->
+        <section class="summary-cards">
+            <div class="card card-stat">
+                <h3>Images Scanned</h3>
+                <p class="stat-value" id="stat-images">0</p>
+            </div>
+            <div class="card card-stat">
+                <h3>Total Vulnerabilities</h3>
+                <p class="stat-value" id="stat-total">0</p>
+            </div>
+            <div class="card card-stat critical">
+                <h3>Critical</h3>
+                <p class="stat-value" id="stat-critical">0</p>
+            </div>
+            <div class="card card-stat high">
+                <h3>High</h3>
+                <p class="stat-value" id="stat-high">0</p>
+            </div>
+            <div class="card card-stat medium">
+                <h3>Medium</h3>
+                <p class="stat-value" id="stat-medium">0</p>
+            </div>
+            <div class="card card-stat low">
+                <h3>Low</h3>
+                <p class="stat-value" id="stat-low">0</p>
+            </div>
+        </section>
+
+        <!-- Charts Section -->
+        <section class="charts-section">
+            <div class="card chart-container">
+                <h2>Severity Distribution</h2>
+                <canvas id="severityChart"></canvas>
+            </div>
+            <div class="card chart-container">
+                <h2>Top Images by Vulnerabilities</h2>
+                <canvas id="topImagesChart"></canvas>
+            </div>
+        </section>
+
+        <!-- Search and Filters -->
+        <section class="filters-section">
+            <div class="card">
+                <h2>Search & Filter</h2>
+                <div class="filter-group">
+                    <input 
+                        type="text" 
+                        id="searchInput" 
+                        class="search-input"
+                        placeholder="Search by image, package, or CVE..."
+                        onkeyup="applyFilters()"
+                    >
+                    <select id="severityFilter" class="severity-select" onchange="applyFilters()">
+                        <option value="">All Severities</option>
+                        <option value="CRITICAL">Critical</option>
+                        <option value="HIGH">High</option>
+                        <option value="MEDIUM">Medium</option>
+                        <option value="LOW">Low</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+
+        <!-- Vulnerability Table -->
+        <section class="table-section">
+            <div class="card">
+                <h2>Vulnerabilities</h2>
+                <div class="table-wrapper">
+                    <table class="vulnerability-table" id="vulnTable">
+                        <thead>
+                            <tr>
+                                <th onclick="sortTable(0)">Image</th>
+                                <th onclick="sortTable(1)">Package</th>
+                                <th onclick="sortTable(2)">CVE ID</th>
+                                <th onclick="sortTable(3)">Severity</th>
+                                <th onclick="sortTable(4)">Installed Version</th>
+                                <th onclick="sortTable(5)">Fixed Version</th>
+                                <th onclick="sortTable(6)">Description</th>
+                                <th onclick="sortTable(7)">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="vulnTableBody">
+                            <!-- Populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Pagination Controls -->
+                <div id="paginationControls" style="margin-top: 20px;"></div>
+            </div>
+        </section>
+
+        <!-- CVE Details Panel (Modal) -->
+        <div id="cveModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeCVEModal()">&times;</span>
+                <h2 id="cveModalTitle">CVE Details</h2>
+                <div id="cveModalBody">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='dashboard.js') }}"></script>
+</body>
+</html>

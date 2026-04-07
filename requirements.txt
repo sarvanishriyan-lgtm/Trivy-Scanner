@@ -1,0 +1,6 @@
+# Phase 1 uses only Python standard library modules.
+# Phase 3 requires these additional packages:
+Flask
+Flask-CORS
+pandas
+openpyxl
