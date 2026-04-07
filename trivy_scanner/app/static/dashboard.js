@@ -6,17 +6,56 @@ let topImagesChart = null;
 let currentPage = 1;
 let totalPages = 1;
 let totalItems = 0;
+let currentProfile = 'dev';
 
 // Load data on page load
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
+    await loadProfiles();
     loadStats();
     loadVulnerabilities();
 });
 
+// Load available profiles
+async function loadProfiles() {
+    try {
+        const response = await fetch('/api/profiles');
+        const data = await response.json();
+
+        const profileSelect = document.getElementById('profileSelect');
+        profileSelect.innerHTML = '';
+
+        data.profiles.forEach(profile => {
+            const option = document.createElement('option');
+            option.value = profile;
+            option.textContent = profile.charAt(0).toUpperCase() + profile.slice(1);
+            if (profile === data.default) {
+                option.selected = true;
+                currentProfile = profile;
+            }
+            profileSelect.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error loading profiles:', error);
+    }
+}
+
+// Handle profile change
+function changeProfile() {
+    const profileSelect = document.getElementById('profileSelect');
+    currentProfile = profileSelect.value;
+
+    // Reset pagination
+    currentPage = 1;
+
+    // Reload all data
+    loadStats();
+    loadVulnerabilities(1);
+}
+
 // Load statistics
 async function loadStats() {
     try {
-        const response = await fetch('/api/stats');
+        const response = await fetch(`/api/stats?profile=${currentProfile}`);
         const stats = await response.json();
         
         document.getElementById('stat-images').textContent = stats.images_scanned;
@@ -41,15 +80,7 @@ async function loadVulnerabilities(page = 1) {
         const params = new URLSearchParams();
         params.append('page', page);
         params.append('page_size', 100);
-        if (searchTerm) params.append('search', searchTerm);
-        if (severity) params.append('severity', severity);
-        
-        const response = await fetch(`/api/vulnerabilities?${params}`);
-        const data = await response.json();
-        
-        allVulnerabilities = data.items;
-        currentPage = data.page;
-        totalPages = data.total_pages;
+        params.append('profile', currentProfile);
         totalItems = data.total_items;
         
         renderVulnerabilityTable(allVulnerabilities);
@@ -210,7 +241,7 @@ function applyFilters() {
 // Show CVE details modal
 async function showCVEDetails(cveId) {
     try {
-        const response = await fetch(`/api/cve/${cveId}`);
+        const response = await fetch(`/api/cve/${cveId}?profile=${currentProfile}`);
         const details = await response.json();
         
         if (response.ok) {
@@ -293,13 +324,13 @@ function sortTable(columnIndex) {
 // Export report
 async function exportReport() {
     try {
-        const response = await fetch('/api/export');
+        const response = await fetch(`/api/export?profile=${currentProfile}`);
         const blob = await response.blob();
-        
+
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'vulnerability_report.xlsx';
+        a.download = `vulnerability_report_${currentProfile}.xlsx`;
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);

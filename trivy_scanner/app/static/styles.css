@@ -58,7 +58,44 @@ body {
 
 .header-actions {
     display: flex;
-    gap: 10px;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+/* Profile Selector */
+.profile-selector {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.profile-selector label {
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.profile-select {
+    padding: 8px 12px;
+    background-color: var(--bg-input);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    color: var(--text-primary);
+    font-size: 14px;
+    cursor: pointer;
+    min-width: 120px;
+}
+
+.profile-select:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 10px rgba(0, 217, 255, 0.3);
+}
+
+.profile-select option {
+    background-color: var(--bg-card);
+    color: var(--text-primary);
 }
 
 /* Buttons */
@@ -400,29 +437,38 @@ body {
     .summary-cards {
         grid-template-columns: repeat(2, 1fr);
     }
-    
+
     .charts-section {
         grid-template-columns: 1fr;
     }
-    
+
     .filter-group {
         flex-direction: column;
     }
-    
+
     .search-input {
         min-width: 100%;
     }
-    
+
     .header {
         flex-direction: column;
         gap: 15px;
         text-align: center;
     }
-    
+
+    .header-actions {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .profile-selector {
+        order: -1; /* Show profile selector first on mobile */
+    }
+
     .vulnerability-table {
         font-size: 12px;
     }
-    
+
     .vulnerability-table td,
     .vulnerability-table th {
         padding: 8px;

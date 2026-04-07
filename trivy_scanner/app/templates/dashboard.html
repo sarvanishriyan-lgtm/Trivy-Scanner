@@ -13,6 +13,12 @@
         <header class="header">
             <h1>🔒 Trivy Vulnerability Dashboard</h1>
             <div class="header-actions">
+                <div class="profile-selector">
+                    <label for="profileSelect">Environment:</label>
+                    <select id="profileSelect" class="profile-select" onchange="changeProfile()">
+                        <!-- Populated by JavaScript -->
+                    </select>
+                </div>
                 <button class="btn btn-primary" onclick="exportReport()">📥 Export Report</button>
             </div>
         </header>

@@ -11,13 +11,16 @@ main_bp = Blueprint('main', __name__)
 OUTPUT_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'output')
 
 
-def load_vulnerabilities():
-    """Load and parse all Trivy JSON reports from output/ directory."""
+def load_vulnerabilities(profile='dev'):
+    """Load and parse all Trivy JSON reports from output/<profile>/ directory."""
     vulnerabilities = []
     images_metadata = {}
 
-    # Find all JSON files in output directory
-    json_files = glob.glob(os.path.join(OUTPUT_DIR, '**/*.json'), recursive=True)
+    # Use profile-specific output directory
+    profile_output_dir = os.path.join(OUTPUT_DIR, profile)
+
+    # Find all JSON files in profile-specific output directory
+    json_files = glob.glob(os.path.join(profile_output_dir, '**/*.json'), recursive=True)
 
     for json_file in json_files:
         try:
@@ -72,7 +75,8 @@ def dashboard():
 @main_bp.route('/api/vulnerabilities')
 def api_vulnerabilities():
     """API endpoint to fetch vulnerabilities with optional filtering and pagination."""
-    vulns, _ = load_vulnerabilities()
+    profile = request.args.get('profile', 'dev')  # Default to dev
+    vulns, _ = load_vulnerabilities(profile)
 
     # Get filter parameters
     severity_filter = request.args.get('severity', '').upper()
@@ -116,7 +120,8 @@ def api_vulnerabilities():
 @main_bp.route('/api/stats')
 def api_stats():
     """API endpoint for dashboard statistics."""
-    vulns, images_metadata = load_vulnerabilities()
+    profile = request.args.get('profile', 'dev')
+    vulns, images_metadata = load_vulnerabilities(profile)
 
     severity_counts = defaultdict(int)
     for v in vulns:
@@ -144,7 +149,8 @@ def api_stats():
 @main_bp.route('/api/cve/<cve_id>')
 def api_cve_details(cve_id):
     """API endpoint for CVE details."""
-    vulns, images_metadata = load_vulnerabilities()
+    profile = request.args.get('profile', 'dev')
+    vulns, images_metadata = load_vulnerabilities(profile)
 
     cve_vulns = [v for v in vulns if v['vulnerability_id'] == cve_id]
 
@@ -169,28 +175,22 @@ def api_cve_details(cve_id):
     return jsonify(details)
 
 
-@main_bp.route('/api/export')
-def api_export():
-    """Export vulnerabilities to Excel."""
-    vulns, _ = load_vulnerabilities()
+@main_bp.route('/api/profiles')
+def api_profiles():
+    """API endpoint to get available profiles/environments."""
+    try:
+        # Get all subdirectories in output directory
+        profiles = []
+        if os.path.exists(OUTPUT_DIR):
+            profiles = [d for d in os.listdir(OUTPUT_DIR)
+                       if os.path.isdir(os.path.join(OUTPUT_DIR, d))]
 
-    df = pd.DataFrame(vulns)
+        # Sort profiles with dev first, then alphabetically
+        profiles.sort(key=lambda x: (0 if x == 'dev' else 1, x))
 
-    # Select and reorder columns
-    columns_order = [
-        'image', 'package', 'vulnerability_id', 'severity',
-        'installed_version', 'fixed_version', 'description', 'fix_available'
-    ]
-    df = df[columns_order]
-
-    # Create Excel workbook
-    output = BytesIO()
-    with pd.ExcelWriter(output, engine='openpyxl') as writer:
-        df.to_excel(writer, sheet_name='Vulnerabilities', index=False)
-
-    output.seek(0)
-
-    return output.getvalue(), 200, {
-        'Content-Disposition': 'attachment; filename=vulnerability_report.xlsx',
-        'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    }
+        return jsonify({
+            'profiles': profiles,
+            'default': 'dev'
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
