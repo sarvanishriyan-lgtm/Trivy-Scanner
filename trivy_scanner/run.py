@@ -6,8 +6,8 @@ Run script for Trivy Vulnerability Scanner Dashboard
 import sys
 import os
 
-# Add the package to Python path
-sys.path.insert(0, os.path.dirname(__file__))
+# Add the parent directory to Python path to import trivy_scanner
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from trivy_scanner.app import create_app
 
